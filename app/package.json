@@ -1,0 +1,26 @@
+{
+  "name": "blockchain-dapp-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "android": "npm run build && npx cap add android && npx cap open android",
+    "ios": "npm run build && npx cap add ios && npx cap open ios"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5",
+    "@types/node": "^16.18.124",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/ios": "^5.0.0"
+  }
+}

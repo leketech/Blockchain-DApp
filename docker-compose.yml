@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: blockchain
+      POSTGRES_PASSWORD: blockchain
+      POSTGRES_DB: blockchain_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - blockchain-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://blockchain:blockchain@database:5432/blockchain_dev?sslmode=disable
+      - PORT=8080
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - blockchain-network
+    restart: always
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - blockchain-network
+
+volumes:
+  postgres_data:
+
+networks:
+  blockchain-network:
+    driver: bridge

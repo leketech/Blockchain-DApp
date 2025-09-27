@@ -1,0 +1,325 @@
+# Grafana Helm Chart Values
+rbac:
+  create: true
+  pspEnabled: false
+  namespaced: false
+
+serviceAccount:
+  create: true
+  name: grafana
+  annotations: {}
+
+replicas: 1
+
+## Pod Annotations
+##
+podAnnotations: {}
+
+## Pod Labels
+##
+podLabels: {}
+
+## Deployment annotations
+##
+deploymentAnnotations: {}
+
+## Image configuration
+##
+image:
+  repository: grafana/grafana
+  tag: 10.0.1
+  sha: ""
+  pullPolicy: IfNotPresent
+
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  pullSecrets: []
+  # - myRegistryKeySecretName
+
+testFramework:
+  enabled: true
+  image: "bats/bats"
+  tag: "v1.4.1"
+  imagePullPolicy: IfNotPresent
+  securityContext: {}
+
+securityContext:
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  runAsUser: 472
+  runAsNonRoot: true
+
+## Expose the grafana service to be accessed from outside the cluster (LoadBalancer service).
+## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+## ref: http://kubernetes.io/docs/user-guide/services/
+##
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+    # targetPort: 4181 To be used with a proxy extraContainer
+  annotations: {}
+  labels: {}
+  portName: service
+
+## ServiceMonitor configuration
+##
+serviceMonitor:
+  ## If true, a ServiceMonitor CRD is created for a prometheus operator
+  ## https://github.com/coreos/prometheus-operator
+  ##
+  enabled: false
+
+## PodSecurityPolicy configuration
+##
+podSecurityPolicy:
+  enabled: false
+
+## Ingress configuration
+##
+ingress:
+  enabled: false
+
+## Persistence configuration
+##
+persistence:
+  type: pvc
+  enabled: true
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+## Init containers
+##
+initChownData:
+  enabled: true
+  image:
+    repository: busybox
+    tag: "1.31.1"
+    sha: ""
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
+
+## Sidecars
+##
+sidecar:
+  image:
+    repository: quay.io/kiwigrid/k8s-sidecar
+    tag: 1.24.6
+    sha: ""
+  imagePullPolicy: IfNotPresent
+  resources: {}
+  securityContext: {}
+  # skipTlsVerify: true
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    folder: /tmp/dashboards
+    provider:
+      name: sidecarProvider
+      orgid: 1
+      folder: ''
+      type: file
+      disableDelete: false
+      allowUiUpdates: false
+      updateIntervalSeconds: 30
+      options:
+        path: /tmp/dashboards
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    searchNamespace: null
+    provider:
+      name: sidecarProvider
+      orgid: 1
+      type: file
+      disableDelete: false
+      allowUiUpdates: false
+      updateIntervalSeconds: 30
+      options:
+        path: /etc/grafana/provisioning/datasources
+
+## Resources
+##
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## Node labels for pod assignment
+##
+nodeSelector: {}
+
+## Tolerations for pod assignment
+##
+tolerations: []
+
+## Affinity for pod assignment
+##
+affinity: {}
+
+## Enable an Specify container in extraContainers. This is meant to allow adding an authentication proxy to a grafana pod
+##
+extraContainers: |
+
+## Volumes
+##
+extraVolumeMounts: []
+# - name: extra-volume
+#   mountPath: /mnt/volume
+#   readOnly: true
+#   existingClaim: volume-claim
+
+extraVolumes: []
+# - name: extra-volume
+#   persistentVolumeClaim:
+#     claimName: volume-claim
+
+## Extra configmaps to mount
+##
+extraConfigmapMounts: []
+# - name: certs-configmap
+#   mountPath: /etc/certs
+#   subPath: certificates.crt
+#   configMap: certs-configmap
+#   readOnly: true
+
+## Extra secrets to mount
+##
+extraSecretMounts: []
+# - name: secret-certificates
+#   mountPath: /etc/secret-certs
+#   secretName: secret-certificates
+#   readOnly: true
+
+## Extra environment variables
+##
+env:
+  GF_SECURITY_ADMIN_USER: admin
+  GF_SECURITY_ADMIN_PASSWORD: admin123
+  GF_USERS_ALLOW_SIGN_UP: false
+
+## Environment variables from secrets or config maps
+##
+envFromSecrets: []
+envFromConfigMaps: []
+
+## Grafana's primary configuration
+##
+grafana.ini:
+  paths:
+    data: /var/lib/grafana/data
+    logs: /var/log/grafana
+    plugins: /var/lib/grafana/plugins
+    provisioning: /etc/grafana/provisioning
+  analytics:
+    check_for_updates: false
+  log:
+    mode: console
+  grafana_net:
+    url: https://grafana.net
+  server:
+    domain: ""
+    root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+    serve_from_sub_path: false
+
+## Grafana's LDAP configuration
+##
+ldap:
+  enabled: false
+  existingSecret: ""
+  config: ""
+
+## Grafana's SMTP configuration
+##
+smtp:
+  existingSecret: ""
+  userKey: user
+  passwordKey: password
+
+## Configure plugins
+##
+plugins: []
+# - grafana-piechart-panel
+# - alexanderzobnin-zabbix-app
+
+## Configure datasources
+##
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server:9090
+      access: proxy
+      isDefault: true
+
+## Configure dashboard providers
+##
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/default
+
+## Configure dashboards
+##
+dashboards:
+  default:
+    kubernetes-cluster-monitoring:
+      gnetId: 315
+      revision: 3
+      datasource: Prometheus
+    kubernetes-pod-monitoring:
+      gnetId: 6336
+      revision: 1
+      datasource: Prometheus
+    node-exporter-full:
+      gnetId: 1860
+      revision: 26
+      datasource: Prometheus
+
+## Configure notifiers
+##
+notifiers: {}
+
+## Configure alerting rules
+##
+alerting: {}
+
+## Configure grafana-image-renderer
+##
+imageRenderer:
+  enabled: false
+
+## Configure grafana-cli
+##
+grafana-cli:
+  plugins:
+    install:
+      - grafana-piechart-panel

@@ -1,0 +1,422 @@
+# Prometheus Helm Chart Values
+rbac:
+  create: true
+
+podSecurityPolicy:
+  enabled: false
+
+imagePullSecrets: []
+  # - name: "image-pull-secret"
+
+## Define serviceAccount names for components. Defaults to component's fully qualified name.
+##
+serviceAccounts:
+  server:
+    create: true
+    name: prometheus-server
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::907849381252:role/blockchain-dev-eks-service-account"
+
+## Monitors ConfigMap changes
+##
+configmapReload:
+  prometheus:
+    enabled: true
+    name: prometheus-configmap-reload
+    image:
+      repository: jimmidyson/configmap-reload
+      tag: v0.8.0
+    resources: {}
+
+server:
+  enabled: true
+  image:
+    repository: quay.io/prometheus/prometheus
+    tag: v2.45.0
+    pullPolicy: IfNotPresent
+
+  ## Prometheus server container name
+  ##
+  name: server
+
+  ## Prometheus server configuration
+  ##
+  config:
+    ## Define Prometheus rules
+    ##
+    rules: {}
+    
+    ## Define Prometheus alerts
+    ##
+    alerts: {}
+
+  ## Prometheus server PodSecurityContext
+  ##
+  podSecurityContext:
+    runAsUser: 65534
+    runAsNonRoot: true
+    runAsGroup: 65534
+    fsGroup: 65534
+
+  ## Prometheus server container SecurityContext
+  ##
+  containerSecurityContext:
+    runAsUser: 65534
+    runAsNonRoot: true
+    runAsGroup: 65534
+
+  ## Prometheus server service configuration
+  ##
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+
+    ## Port for Prometheus Service to listen on
+    ##
+    port: 9090
+
+    ## To be used with a proxy extraContainer port
+    targetPort: 9090
+
+    ## Port to expose on each node
+    ## Only used if service.type is 'NodePort'
+    ##
+    nodePort: 30900
+
+    ## Service type
+    ##
+    type: ClusterIP
+
+  ## Prometheus server persistent volume configuration
+  ##
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+    storageClass: gp2
+
+  ## Prometheus server resource requests and limits
+  ##
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  ## Prometheus server ingress configuration
+  ##
+  ingress:
+    enabled: false
+
+  ## Prometheus server retention configuration
+  ##
+  retention: "15d"
+
+  ## Prometheus server retention size configuration
+  ##
+  retentionSize: ""
+
+  ## Prometheus server extra flags
+  ##
+  extraFlags:
+    - web.enable-lifecycle
+    - web.enable-admin-api
+
+  ## Prometheus server extra containers
+  ##
+  extraContainers: |
+
+  ## Prometheus server extra volumes
+  ##
+  extraVolumes: []
+
+  ## Prometheus server extra volume mounts
+  ##
+  extraVolumeMounts: []
+
+  ## Prometheus server node selector
+  ##
+  nodeSelector: {}
+
+  ## Prometheus server tolerations
+  ##
+  tolerations: []
+
+  ## Prometheus server affinity
+  ##
+  affinity: {}
+
+  ## Prometheus server priority class
+  ##
+  priorityClassName: ""
+
+  ## Prometheus server deployment strategy
+  ##
+  strategy: {}
+    # rollingUpdate:
+    #   maxSurge: 1
+    #   maxUnavailable: 0
+    # type: RollingUpdate
+
+  ## Prometheus server init containers
+  ##
+  initContainers: []
+
+  ## Prometheus server sidecar containers
+  ##
+  sidecars: []
+
+  ## Prometheus server additional scrape configs
+  ##
+  additionalScrapeConfigs:
+    - job_name: 'dapp-health-checker'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - dapp
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: dapp-health-checker
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+        action: replace
+        target_label: __scheme__
+        regex: (https?)
+
+alertmanager:
+  enabled: true
+  image:
+    repository: quay.io/prometheus/alertmanager
+    tag: v0.25.0
+    pullPolicy: IfNotPresent
+
+  ## Alertmanager container name
+  ##
+  name: alertmanager
+
+  ## Alertmanager configuration
+  ##
+  config:
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alertmanager@example.com'
+      smtp_auth_username: 'your-email@gmail.com'
+      smtp_auth_password: 'your-app-password'
+      smtp_auth_identity: 'your-email@gmail.com'
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'gmail-notifications'
+    receivers:
+    - name: 'gmail-notifications'
+      email_configs:
+      - to: 'recipient@example.com'
+        send_resolved: true
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+
+  ## Alertmanager service configuration
+  ##
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+
+    ## Port for Alertmanager Service to listen on
+    ##
+    port: 9093
+
+    ## To be used with a proxy extraContainer port
+    targetPort: 9093
+
+    ## Port to expose on each node
+    ## Only used if service.type is 'NodePort'
+    ##
+    nodePort: 30903
+
+    ## Service type
+    ##
+    type: ClusterIP
+
+  ## Alertmanager persistent volume configuration
+  ##
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+    storageClass: gp2
+
+  ## Alertmanager resource requests and limits
+  ##
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+  ## Alertmanager ingress configuration
+  ##
+  ingress:
+    enabled: false
+
+  ## Alertmanager node selector
+  ##
+  nodeSelector: {}
+
+  ## Alertmanager tolerations
+  ##
+  tolerations: []
+
+  ## Alertmanager affinity
+  ##
+  affinity: {}
+
+  ## Alertmanager priority class
+  ##
+  priorityClassName: ""
+
+  ## Alertmanager deployment strategy
+  ##
+  strategy: {}
+    # rollingUpdate:
+    #   maxSurge: 1
+    #   maxUnavailable: 0
+    # type: RollingUpdate
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+pushgateway:
+  enabled: false
+
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alertmanager@example.com'
+      smtp_auth_username: 'your-email@gmail.com'
+      smtp_auth_password: 'your-app-password'
+      smtp_auth_identity: 'your-email@gmail.com'
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'gmail-notifications'
+    receivers:
+    - name: 'gmail-notifications'
+      email_configs:
+      - to: 'recipient@example.com'
+        send_resolved: true
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+
+serverFiles:
+  alerts: {}
+  rules: {}
+  prometheus.yml:
+    rule_files:
+      - /etc/config/rules
+      - /etc/config/alerts
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets:
+            - localhost:9090
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+        - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: default;kubernetes;https
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+        - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
+      - job_name: 'kubernetes-service-endpoints'
+        kubernetes_sd_configs:
+        - role: endpoints
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+          action: replace
+          target_label: __scheme__
+          regex: (https?)
+        - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+          action: replace
+          target_label: __address__
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+        - action: labelmap
+          regex: __meta_kubernetes_service_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_service_name]
+          action: replace
+          target_label: kubernetes_name

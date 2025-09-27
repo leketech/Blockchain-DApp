@@ -1,0 +1,102 @@
+# Deploy Prometheus and Grafana using Helm
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helm-deployer
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: helm-deployer
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: helm-deployer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: helm-deployer
+subjects:
+- kind: ServiceAccount
+  name: helm-deployer
+  namespace: monitoring
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deploy-monitoring
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      serviceAccountName: helm-deployer
+      containers:
+      - name: helm-deployer
+        image: alpine/helm:3.12.0
+        command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          # Add Prometheus and Grafana Helm repositories
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+          
+          # Install Prometheus
+          helm install prometheus prometheus-community/prometheus \
+            --namespace monitoring \
+            --values /etc/prometheus/values.yaml \
+            --set server.serviceAccount.create=false \
+            --set server.serviceAccount.name=prometheus-server \
+            --set alertmanager.serviceAccount.create=false \
+            --set alertmanager.serviceAccount.name=prometheus-server \
+            --timeout 10m0s
+          
+          # Install Grafana
+          helm install grafana grafana/grafana \
+            --namespace monitoring \
+            --values /etc/grafana/values.yaml \
+            --timeout 10m0s
+        volumeMounts:
+        - name: prometheus-values
+          mountPath: /etc/prometheus
+        - name: grafana-values
+          mountPath: /etc/grafana
+      volumes:
+      - name: prometheus-values
+        configMap:
+          name: prometheus-values
+      - name: grafana-values
+        configMap:
+          name: grafana-values
+      restartPolicy: Never
+  backoffLimit: 3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-values
+  namespace: monitoring
+data:
+  values.yaml: |
+    # Prometheus values would go here
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-values
+  namespace: monitoring
+data:
+  values.yaml: |
+    # Grafana values would go here
