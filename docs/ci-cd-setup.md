@@ -43,7 +43,7 @@ For the backend deployment workflow, you'll need:
 
 Create an IAM policy with the following permissions for your CI/CD pipeline:
 
-```json
+```
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -82,6 +82,69 @@ The CI/CD workflows are configured to trigger on:
 3. **Backend Deployment** (`deploy-backend.yml`):
    - Push to `main` branch when files in the `backend/` directory are modified
    - Manual trigger via GitHub Actions UI
+
+## Deployment Process
+
+1. Code is pushed to the repository
+2. GitHub Actions workflow is triggered
+3. Code is built and tested
+4. Docker images are built and pushed to ECR
+5. Kubernetes manifests are updated with new image tags
+6. Changes are applied to the EKS cluster
+7. CloudFront cache is invalidated (if needed)
+
+## Required Permissions
+
+The CI/CD pipeline requires the following AWS permissions:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:GetRepositoryPolicy",
+        "ecr:DescribeRepositories",
+        "ecr:ListImages",
+        "ecr:DescribeImages",
+        "ecr:BatchGetImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutImage",
+        "eks:DescribeCluster",
+        "eks:ListClusters",
+        "eks:AccessKubernetesApi",
+        "eks:DescribeNodegroup",
+        "eks:ListNodegroups",
+        "eks:DescribeUpdate",
+        "eks:ListUpdates",
+        "eks:ListFargateProfiles",
+        "eks:DescribeFargateProfile",
+        "eks:ListIdentityProviderConfigs",
+        "eks:DescribeIdentityProviderConfig",
+        "eks:AssociateAccessPolicy",
+        "s3:ListAllMyBuckets",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "cloudfront:CreateInvalidation",  // Added for CloudFront cache invalidation
+        "cloudfront:GetInvalidation",
+        "cloudfront:ListDistributions"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
 
 ## Deployment Order
 

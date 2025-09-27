@@ -1,28 +1,22 @@
 # Documentation
 
-This directory contains all the documentation for the Blockchain-DApp project.
+This directory contains documentation for the Blockchain DApp project.
 
 ## Table of Contents
 
-### Architecture
-- [Technology Choices & Rationale](architecture/technology-choices.md) - Key technology decisions and reasoning
-- [System Overview](architecture/system-overview.md) - High-level system architecture
-- [Data Flow](architecture/data-flow.md) - Data flow diagrams and explanations
-
-### Compliance
-- [PCI DSS Checklist](compliance/pci-dss-checklist.md) - PCI DSS compliance requirements and implementation status
-
-### Operations
-- [CI/CD Setup](ci-cd-setup.md) - Continuous integration and deployment configuration
-- [Core Components Integration](core-components-integration.md) - Integration of all core system components
-- [Frontend Deployment](frontend-deployment.md) - Instructions for deploying frontend applications
-- [Monitoring Setup](monitoring-setup.md) - Monitoring stack configuration and setup
-- [VPC Design](vpc-design.md) - Virtual Private Cloud architecture and design decisions
-
-### Onboarding
-- [Developer Onboarding](onboarding/developer-onboarding.md) - Guide for new developers joining the project
-
-### Runbooks
-- [Incident Response](runbooks/incident-response.md) - Procedures for handling system incidents
-- [Rollback Procedure](runbooks/rollback-procedure.md) - Steps to rollback deployments
-- [Troubleshooting Guide](runbooks/troubleshooting-guide.md) - Common issues and solutions
+- [Architecture](architecture/system-overview.md)
+- [Technology Choices](architecture/technology-choices.md)
+- [Data Flow](architecture/data-flow.md)
+- [VPC Design](vpc-design.md)
+- [CI/CD Setup](ci-cd-setup.md)
+- [Frontend Deployment](frontend-deployment.md)
+- [Monitoring Setup](monitoring-setup.md)
+- [Core Components Integration](core-components-integration.md)
+- [CloudFront Setup](cloudfront-setup.md)  <!-- Added CloudFront documentation -->
+- [PCI DSS Compliance](compliance/pci-dss-checklist.md)
+- [PCI Evidence Checklist](compliance/pci-evidence-checklist.md)
+- [SOC 2 Notes](compliance/soc2-notes.md)
+- [Dev Setup](onboarding/dev-setup.md)
+- [Incident Response](runbooks/incident-response.md)
+- [Rollback Procedure](runbooks/rollback-procedure.md)
+- [Scaling Guide](runbooks/scaling-guide.md)

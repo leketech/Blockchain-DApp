@@ -9,6 +9,18 @@ variable "account_id" {
   default     = "907849381252"
 }
 
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS"
+  type        = string
+  default     = ""
+}
+
+variable "cloudfront_aliases" {
+  description = "List of domain aliases for the CloudFront distribution"
+  type        = list(string)
+  default     = []
+}
+
 # VPC Module
 module "vpc" {
   source = "../../modules/vpc"
@@ -174,7 +186,7 @@ resource "aws_security_group" "rds" {
 
 # S3 Bucket for application data
 resource "aws_s3_bucket" "app_data" {
-  bucket = "blockchain-dapp-data-dev-907849381252"
+  bucket = "dapp-bucket-2578"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "app_data_encryption" {
@@ -193,6 +205,37 @@ resource "aws_s3_bucket_public_access_block" "app_data_public_block" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# CloudFront Module
+module "cloudfront" {
+  source = "../../modules/cloudfront"
+
+  environment             = "dev"
+  s3_bucket_domain_name   = aws_s3_bucket.app_data.bucket_regional_domain_name
+  acm_certificate_arn     = var.acm_certificate_arn
+  aliases                 = var.cloudfront_aliases
+}
+
+# S3 Bucket Policy for CloudFront access
+resource "aws_s3_bucket_policy" "app_data_cloudfront" {
+  bucket = aws_s3_bucket.app_data.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCloudFrontServicePrincipalReadOnly"
+        Effect    = "Allow"
+        Principal = {
+          AWS = module.cloudfront.origin_access_identity
+        }
+        Action    = [
+          "s3:GetObject"
+        ]
+        Resource  = "arn:aws:s3:::${aws_s3_bucket.app_data.bucket}/*"
+      }
+    ]
+  })
 }
 
 # KMS Key for application secrets
@@ -520,4 +563,15 @@ output "database_encryption_key_arn" {
 output "logs_encryption_key_arn" {
   description = "Logs encryption key ARN"
   value       = module.security.logs_encryption_key_arn
+}
+
+# CloudFront outputs
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain name"
+  value       = module.cloudfront.cloudfront_domain_name
+}
+
+output "cloudfront_arn" {
+  description = "CloudFront distribution ARN"
+  value       = module.cloudfront.cloudfront_arn
 }
