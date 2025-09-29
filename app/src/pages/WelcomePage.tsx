@@ -1,14 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const WelcomePage: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleCreateWallet = () => {
     console.log('Create New Wallet clicked');
-    // Implement wallet creation logic here
+    // Navigate to wallet setup page
+    navigate('/wallet-setup');
   };
 
   const handleImportWallet = () => {
     console.log('Import Existing Wallet clicked');
-    // Implement wallet import logic here
+    // Navigate to wallet setup page
+    navigate('/wallet-setup');
   };
 
   const handleHelp = () => {

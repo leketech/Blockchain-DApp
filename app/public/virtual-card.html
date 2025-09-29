@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>dApp Welcome</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#135bec",
+            "background-light": "#f6f6f8",
+            "background-dark": "#101622",
+          },
+          fontFamily: {
+            display: ["Space Grotesk"],
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        },
+      },
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+  <div class="flex flex-col min-h-screen">
+    <header class="flex items-center justify-between p-4">
+      <h2 class="flex-1 text-center text-lg font-bold text-black dark:text-white">dApp</h2>
+      <button class="text-black dark:text-white">
+        <span class="material-symbols-outlined">help</span>
+      </button>
+    </header>
+    <main class="flex flex-1 flex-col items-center justify-center p-6 text-center">
+      <div class="mb-8">
+        <div class="relative w-72 h-44 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 shadow-lg text-white">
+          <div class="p-4">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-semibold">dApp</span>
+              <span class="material-symbols-outlined text-3xl">contactless</span>
+            </div>
+            <div class="mt-8">
+              <p class="text-sm tracking-wider">•••• •••• •••• 1234</p>
+              <p class="text-xs">JOHN APPLESEED</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h1 class="text-3xl font-bold text-black dark:text-white">Your Virtual Debit Card</h1>
+      <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
+        Ready for Apple & Google Wallet. Your transactions are protected with enhanced security.
+      </p>
+      <div class="mt-6 flex flex-col items-center space-y-4">
+        <button class="flex items-center justify-center w-60 rounded-lg bg-black py-2 text-white transition-opacity hover:opacity-90">
+          <img alt="Apple Wallet Logo" class="mr-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXVy_Bfo2iYR1uGNhNww7ES8qqzuekydxETxa5P1Z-lpJBDFdX006woVugj3t5Vv2oJjnQPfgmNH4XrTzWeemRq08zhK-CYY6-dnXf1sYu-IsUuSwICUmfhwAOvWbpFYLRfgGeVHl0DZ3fKuwszhH9zCnepglh_Der2s_8c9dEc7bJSqzfUSLNZPyuhTS0xsOOhb3T_s-3OEKAxI1KJOUTBJll2wf6JEoBEMGpoygtzeVoj4q6oQG-PB7z-jSDLWT3mV2kyw28Wb4"/>
+          Add to Apple Wallet
+        </button>
+        <button class="flex items-center justify-center w-60 rounded-lg bg-white dark:bg-zinc-800 py-2 text-black dark:text-white transition-opacity hover:opacity-90 border border-gray-300 dark:border-zinc-700">
+          <img alt="Google Wallet Logo" class="mr-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr2DkK0xQ0A0r3Y5Xc47xRYJKlEL4-hia1PTxCZblYlkHk3Tnt6lrfPNdA6EgSnJIspo-9XHeBBcYlio5jjMiKsImq5GmHZe7KgyNgR-29IM4CgMCT39t8VhHaZ1CBuUfu4amGc-d1bMckxBLQiBnAvBBuOyK1xqLcHpThijNds0xxDKzwPVmXEwOUTnQyDvRB7CPjxB279bbss_OaVdzcsRTr-I_cWHJmeJzpitoOjRSRd6pf2ydaV3IX4iPENv7IpXkkQJhE1g0"/>
+          Add to Google Wallet
+        </button>
+      </div>
+      <div class="mt-8 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+        <span class="material-symbols-outlined text-lg">verified_user</span>
+        <span>Secured by Google Authenticator</span>
+      </div>
+    </main>
+    <footer class="p-6">
+      <div class="space-y-4">
+        <button class="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-opacity hover:opacity-90">Continue</button>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
